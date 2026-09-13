@@ -1,0 +1,6 @@
+schema: spec-driven
+
+context: |
+  Existing target project context.
+  Brownfield working rule:
+  This resembles only part of the installed governance contract.

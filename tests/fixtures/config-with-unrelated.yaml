@@ -1,0 +1,19 @@
+schema: spec-driven
+
+context: |
+  Existing target project context.
+
+rules:
+  proposal:
+    - Keep this unrelated proposal rule.
+
+operations:
+  apply:
+    guidance:
+      - Keep this unrelated apply guidance.
+
+store: existing-store
+references:
+  - shared-reference
+githubCopilot:
+  cloudAgent: false
