@@ -1,0 +1,111 @@
+required_schema: spec-driven
+
+context_append: |
+  Persistent project knowledge:
+
+  - `openspec/system/brownfield-map.md`
+    Descriptive AS-IS system baseline: current capabilities, runtime topology,
+    ownership, dependencies, trust boundaries, persistence/lifecycle,
+    external integrations, evidence freshness, and known implementation/spec gaps.
+    It is evidence about the existing system, not a TARGET architecture.
+
+  - `openspec/roadmap.md`
+    Persistent cross-change implementation roadmap covering candidate changes,
+    dependencies/conflicts, preliminary sequence, and completed/deferred work.
+    It is planning guidance only, not a behavioral specification, TARGET
+    architecture, frozen design, or implementation authorization.
+
+  - `docs/product/product-boundaries.md`
+    Approved durable product boundaries and Product Evolution Policy.
+    These constraints apply across future OpenSpec changes.
+
+  - `docs/product/product-model.md` and `docs/product/access-model.md`, when present,
+    define supporting product actors, roles, capabilities, surfaces, UX decisions,
+    ownership, permissions, and access rules referenced by product boundaries.
+    Treat only decisions explicitly marked Approved as normative.
+
+  - `PRD.canonical.md`
+    Canonical declared product requirements and invariants.
+
+  - `openspec/deferred-changes/`
+    Preserved prior planning work, not active implementation changes. When a new
+    change overlaps deferred work, use that work as prior evidence before
+    repeating research, but first reconcile it with current code/tests, the
+    brownfield baseline, Approved product documents, and OpenSpec main specs.
+
+  Source semantics:
+
+  - For AS-IS implementation facts, ground conclusions in the current repository
+    and relevant tests, using `brownfield-map.md` as the persistent system map.
+  - For product intent and TARGET constraints, follow the canonical PRD and
+    Approved product documents.
+  - Do not silently resolve a disagreement between code, tests, the brownfield
+    baseline, legacy specifications, and Approved product decisions.
+    Surface the disagreement explicitly.
+  - Legacy SpecKit plans, tasks, quickstarts, status documents, and README content
+    are historical/supporting evidence unless corroborated by current evidence.
+  - Open or otherwise non-Approved product decisions are not normative Approved
+    decisions.
+  - Planned or Deferred behavior may be Approved as future product direction,
+    but is not current MVP/shipped scope until explicitly promoted by a separate
+    Approved decision or change.
+  - Deferred OpenSpec artifacts do not constitute such promotion or apply
+    authorization and must not be treated as current requirements without fresh
+    reconciliation and validation.
+  - Current repository evidence, Approved product decisions, Product Boundaries,
+    and current OpenSpec main specs outrank stale roadmap assumptions.
+
+  Brownfield working rule:
+
+  Before creating or materially revising an OpenSpec planning artifact, inspect
+  the relevant current implementation/tests and the relevant portions of the
+  persistent project documents above.
+
+  Use stable IDs from the product documents to localize the affected scope.
+  Do not reread or reproduce entire persistent documents when only a bounded
+  subset is relevant.
+
+  If the brownfield map is materially stale relative to the current repository,
+  surface that fact instead of treating stale AS-IS information as current.
+
+rules_append:
+  proposal:
+    - Before repeating research for a proposed scope, inspect `openspec/deferred-changes/README.md` and any relevant preserved deferred work; reconcile it with current code/tests, the brownfield baseline, Approved product documents, and OpenSpec main specs before reuse.
+    - Before proposing scope represented by or overlapping `openspec/roadmap.md`, read its relevant dependencies, conflicts, sequence, and prior work, then revalidate them against the current state; do not treat the roadmap as frozen design.
+    - Ground the proposal in the relevant current implementation, tests, and persistent brownfield baseline. Distinguish observed AS-IS behavior from the behavior proposed by this change.
+    - In Impact, identify the materially affected ACT, ROLE, PCAP, SURF, UX, and PB stable IDs from the Approved product documents. Do not invent replacement IDs for existing concepts.
+    - Treat Approved product decisions and Product Boundaries as stable by default. First seek a solution compatible with them.
+    - If the requested change conflicts with an Approved decision, explicitly identify the conflicting stable IDs, explain the conflict and reasonable compatible alternatives, and identify any proposed product-model or boundary amendment. Do not treat that amendment as Approved without explicit human approval.
+    - Never rewrite an existing Approved product decision merely because doing so makes implementation easier.
+    - If the change introduces a new role, product capability, product surface, external data flow, personal store, semantic meaning, or authority, explicitly identify the required persistent product-model/boundary amendment rather than introducing it implicitly through implementation.
+
+  design:
+    - Read the proposal, the change specs when present, the affected AS-IS areas in `openspec/system/brownfield-map.md`, and the relevant Approved product/access/boundary decisions before choosing the technical approach.
+    - Keep AS-IS evidence separate from TARGET design decisions. Do not treat `brownfield-map.md` as a desired architecture merely because it describes the current implementation.
+    - Preserve affected Approved Product Boundaries and product/access decisions unless an explicit amendment has been approved. Reference the affected stable IDs when they materially constrain the design.
+    - Assess architecture impact only where material to the change, including capability ownership, runtime or execution-context boundaries, process/message boundaries, trust and authorization boundaries, data authority/ownership, persistence/lifecycle/deletion, privacy/consent/information flow, external integrations, compatibility/versioning, and evidence semantics.
+    - Do not impose a frontend/backend, service, container, database, account, or deployment split that is not justified by the actual system or the proposed change.
+    - For an architecturally significant decision with multiple meaningful alternatives, compare the relevant alternatives and explain the selected trade-off. Do not manufacture alternatives when the decision is technically constrained.
+    - For structural or persistent-state changes, prefer incremental migration and address compatibility, recovery/restart behavior, cleanup, and rollback when they are materially relevant.
+    - If implementation of the proposed design would require changing an Approved product decision that has not been explicitly approved for amendment, surface that as a blocker rather than silently designing around it.
+
+  tasks:
+    - Derive implementation tasks from the approved proposal/specs/design rather than introducing new product scope or architectural decisions in tasks.
+    - Include appropriate verification for changed behavior and affected invariants using the project's existing unit, contract, property, integration, or E2E test layers where applicable.
+    - If the approved change materially changes the persistent AS-IS system baseline, include a task to refresh `openspec/system/brownfield-map.md`.
+    - If the approved change explicitly amends Approved product, access, or boundary decisions, include the corresponding persistent-document update as part of the change.
+    - Do not create documentation-update tasks for persistent documents that the change does not materially affect.
+
+operations_append:
+  apply:
+    guidance:
+      - Preserve the Approved product boundaries and scope recorded in the planning artifacts. Passing tests or implementation convenience is not approval to amend an Approved product decision.
+      - If implementation reveals a previously unidentified cross-capability, ownership, trust, data, lifecycle, privacy, compatibility, or Product Boundary impact, surface the mismatch and reconcile the planning artifacts before absorbing that scope into the implementation.
+      - Do not silently turn an implementation discovery into a new product decision.
+
+  archive:
+    guidance:
+      - Before archiving, verify that any persistent-baseline updates required by the completed change were handled.
+      - Refresh `openspec/system/brownfield-map.md` when the completed change materially changed the AS-IS capability map, ownership/dependencies, runtime or trust topology, persistence/lifecycle, external integrations, compatibility model, or known gaps.
+      - "After the completed change and any required brownfield refresh, reconcile `openspec/roadmap.md`: mark completed work, reassess downstream dependencies/conflicts, and update the preliminary sequence when justified; do not create future change artifacts during roadmap refresh."
+      - Update Approved product/access/boundary documents only for amendments that received explicit human approval; archive or spec synchronization is not approval to change them.

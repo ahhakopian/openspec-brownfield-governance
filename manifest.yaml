@@ -1,0 +1,74 @@
+name: openspec-brownfield-governance
+version: 0.1.0
+purpose: Faithful standalone packaging of the already working audited modernization.
+
+required_openspec_schema: spec-driven
+config_contract_semantic_sha256: adbd8527b62c6c0e0f81e99e15942851c656c54627ad93974e5bf5a05a6d9dca
+tested_openspec_versions:
+  - 1.12.0
+  - 1.13.0
+integration:
+  tool: codex
+  target_marker: .agents/skills/.openspec-target
+
+owned_skills:
+  - name: brownfield-map
+    source: skills/brownfield-map/SKILL.md
+    target: .agents/skills/brownfield-map/SKILL.md
+    sha256: e8dc54021787e5d9d850f41820bab42ef26a764f91a082b9c33ce5ff1ad087c5
+  - name: product-boundaries
+    source: skills/product-boundaries/SKILL.md
+    target: .agents/skills/product-boundaries/SKILL.md
+    sha256: e230369e9fb0d4a65c3866948b5b895431155e56f61801a3ee6d9ac8207d686c
+  - name: cross-change-roadmap
+    source: skills/cross-change-roadmap/SKILL.md
+    target: .agents/skills/cross-change-roadmap/SKILL.md
+    sha256: 26d2ba26fa20af3b88b5d4a271d132f202a499003bfb0e0265808015562c024b
+
+distribution_owned:
+  - README.md
+  - VERSION
+  - manifest.yaml
+  - pyproject.toml
+  - skills/**
+  - config/**
+  - templates/deferred-changes-README.md
+  - bootstrap/openspec-brownfield.py
+  - docs/**
+  - tests/**
+  - .openspec-brownfield-governance/receipt.json
+
+generated_structural_files:
+  - path: openspec/deferred-changes/README.md
+    initial_owner: distribution
+    ownership_transfers_to: target-project
+    transfer_condition: File content differs from the packaged empty structure.
+
+upstream_owned_never_modified:
+  - .agents/skills/.openspec-target
+  - .agents/skills/openspec-*
+  - openspec standard lifecycle machinery
+  - openspec spec-driven schema
+
+project_owned_never_overwritten:
+  - openspec/system/brownfield-map.md
+  - openspec/roadmap.md
+  - docs/product/product-model.md
+  - docs/product/product-boundaries.md
+  - docs/product/access-model.md
+  - PRD.canonical.md
+  - openspec/specs/**
+  - openspec/changes/**
+  - path: openspec/deferred-changes/**
+    installation_exception: The empty README structure is distribution-owned until target content is added.
+
+known_inherited_issues:
+  - id: BF-001
+    description: brownfield-map names openspec/system/product-boundaries.md once, while the rest of the audited modernization uses docs/product/product-boundaries.md.
+    disposition: Preserved verbatim in 0.1.0; requires a later reviewed release.
+  - id: BF-002
+    description: product-boundaries has an unquoted colon in its frontmatter description and fails strict YAML-frontmatter validation.
+    disposition: Preserved verbatim in 0.1.0 to retain the audited skill hash; requires a later reviewed release.
+
+release_blockers:
+  - A public license has not been selected.

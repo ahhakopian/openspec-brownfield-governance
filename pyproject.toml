@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openspec-brownfield-governance"
+version = "0.1.0"
+description = "Faithful standalone packaging of an audited OpenSpec brownfield governance overlay"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.unittest]
+start-directory = "tests"
