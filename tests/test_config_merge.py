@@ -25,16 +25,42 @@ class ConfigMergeTests(TempProjectTest):
         ).encode()
         self.assertEqual(
             hashlib.sha256(canonical).hexdigest(),
-            "adbd8527b62c6c0e0f81e99e15942851c656c54627ad93974e5bf5a05a6d9dca",
+            "b1c1e0bb9373a9a19917b8513f0f7226b30c5988fe4601346207745913f33e1b",
         )
         self.assertEqual(
             {name: len(items) for name, items in CONTRACT["rules"].items()},
-            {"proposal": 8, "design": 8, "tasks": 5},
+            {"proposal": 8, "design": 9, "tasks": 5},
         )
         self.assertEqual(
             {name: len(items) for name, items in CONTRACT["operations"].items()},
-            {"apply": 3, "archive": 4},
+            {"apply": 4, "archive": 4},
         )
+
+    def test_complexity_contract_clauses_are_merged_once_and_reinstall_is_idempotent(self):
+        invoke(self.root, self.env, "install")
+        first = digest_tree(self.root)
+        invoke(self.root, self.env, "install")
+        self.assertEqual(first, digest_tree(self.root))
+
+        merged = (self.root / "openspec/config.yaml").read_text()
+        self.assertEqual(merged.count("Brownfield Simplicity Policy:"), 1)
+        editor = MODULE.YamlText(merged)
+        for path, item in (
+            (("rules", "design"), CONTRACT["rules"]["design"][-2]),
+            (("rules", "design"), CONTRACT["rules"]["design"][-1]),
+            (("rules", "tasks"), CONTRACT["rules"]["tasks"][0]),
+            (("operations", "apply", "guidance"), CONTRACT["operations"]["apply"][1]),
+            (("operations", "apply", "guidance"), CONTRACT["operations"]["apply"][2]),
+        ):
+            values = [value for _, value in editor.list_values(path)]
+            self.assertEqual(values.count(item), 1)
+
+    def test_modified_managed_clause_refuses_versioned_removal(self):
+        original = "schema: spec-driven\n"
+        installed, receipt = MODULE.merge_config(original, CONTRACT)
+        modified = installed.replace(CONTRACT["rules"]["design"][0], "modified", 1)
+        with self.assertRaisesRegex(MODULE.GovernanceError, "inserted config item"):
+            MODULE.uninstall_config(modified, receipt)
 
     def test_unrelated_config_and_supported_fields_survive(self):
         fixture = (REPO / "tests/fixtures/config-with-unrelated.yaml").read_text()

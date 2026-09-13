@@ -29,16 +29,25 @@ DEFERRED_INDEX_REL = Path("openspec/deferred-changes/README.md")
 TARGET_MARKER_REL = Path(".agents/skills/.openspec-target")
 SUPPORTED_OPENSPEC = ("1.12.0", "1.13.0")
 KNOWN_CONFIG_CONTRACT_HASHES = {
-    "0.1.0": "adbd8527b62c6c0e0f81e99e15942851c656c54627ad93974e5bf5a05a6d9dca"
+    "0.1.0": "adbd8527b62c6c0e0f81e99e15942851c656c54627ad93974e5bf5a05a6d9dca",
+    "0.2.0": "b1c1e0bb9373a9a19917b8513f0f7226b30c5988fe4601346207745913f33e1b",
 }
-SKILLS = {
+SKILLS_0_1_0 = {
     "brownfield-map": "e8dc54021787e5d9d850f41820bab42ef26a764f91a082b9c33ce5ff1ad087c5",
     "product-boundaries": "e230369e9fb0d4a65c3866948b5b895431155e56f61801a3ee6d9ac8207d686c",
     "cross-change-roadmap": "26d2ba26fa20af3b88b5d4a271d132f202a499003bfb0e0265808015562c024b",
 }
-KNOWN_SKILL_HASHES = {"0.1.0": SKILLS}
+SKILLS = {
+    **SKILLS_0_1_0,
+    "brownfield-complexity-gate": "c0c9f93219267309c45988e144203eaf9c7a47141633b0ddadec526964a63696",
+}
+KNOWN_SKILL_HASHES = {
+    "0.1.0": SKILLS_0_1_0,
+    "0.2.0": SKILLS,
+}
 KNOWN_TEMPLATE_HASHES = {
-    "0.1.0": "96f5090364bd6e0293e826ab0907f8ca6709a696550d28d2ed76958a7cad4afc"
+    "0.1.0": "96f5090364bd6e0293e826ab0907f8ca6709a696550d28d2ed76958a7cad4afc",
+    "0.2.0": "96f5090364bd6e0293e826ab0907f8ca6709a696550d28d2ed76958a7cad4afc",
 }
 PROJECT_OWNED_NOTICE_PATHS = (
     "PRD.canonical.md",
@@ -570,6 +579,53 @@ def merge_config(text: str, contract: dict[str, Any]) -> tuple[str, dict[str, An
     return editor.render(), receipt
 
 
+def split_0_2_complexity_context(context: str) -> tuple[str, str] | None:
+    marker = "\n\nBrownfield Simplicity Policy:\n"
+    prefix, found, policy = context.partition(marker)
+    if not found or marker in policy:
+        return None
+    return prefix, "Brownfield Simplicity Policy:\n" + policy
+
+
+def migrate_preexisting_0_1_context(
+    text: str, previous: dict[str, Any], contract: dict[str, Any]
+) -> tuple[str, dict[str, Any]] | None:
+    if previous.get("distribution_version") != "0.1.0":
+        return None
+    previous_config = previous.get("config", {})
+    previous_context = previous_config.get("context", {})
+    historical_context = previous_context.get("value")
+    snapshot = previous_config.get("contract_snapshot", {})
+    if (
+        previous_context.get("inserted")
+        or not previous_context.get("pre_existing")
+        or not isinstance(historical_context, str)
+        or snapshot.get("context") != historical_context
+    ):
+        return None
+    parts = split_0_2_complexity_context(contract["context"])
+    if parts is None or parts[0] != historical_context:
+        return None
+    editor = YamlText(text)
+    block = editor.literal_block("context")
+    if block is None or "\n".join(block[2]).rstrip("\n") != historical_context:
+        return None
+
+    migration_base = uninstall_config(text, previous_config)
+    editor = YamlText(migration_base)
+    inserted, preexisting, created = editor.merge_context(parts[1])
+    if not inserted or preexisting or created:
+        raise GovernanceError("could not append the 0.2.0 complexity context suffix")
+    new_config, config_receipt = merge_config(editor.render(), contract)
+    config_receipt["context"] = {
+        "inserted": True,
+        "pre_existing": True,
+        "value": parts[1],
+        "pre_existing_value": historical_context,
+    }
+    return new_config, config_receipt
+
+
 def config_complete(text: str, contract: dict[str, Any]) -> list[str]:
     issues: list[str] = []
     try:
@@ -625,7 +681,9 @@ def merge_provenance(
         return current
     merged = current
     previous_context = previous.get("context", {})
-    if previous_context.get("inserted"):
+    if previous_context.get("inserted") and previous_context.get("pre_existing"):
+        merged["context"] = copy.deepcopy(previous_context)
+    elif previous_context.get("inserted"):
         merged["context"] = {
             "inserted": True,
             "pre_existing": False,
@@ -766,14 +824,14 @@ def validate_receipt(data: Any, contract: dict[str, Any]) -> dict[str, Any]:
         raise GovernanceError(f"unknown distribution version in receipt: {receipt_version}")
 
     skills = data.get("skills")
-    if not isinstance(skills, list) or len(skills) != len(SKILLS):
+    if not isinstance(skills, list) or len(skills) != len(known_skills):
         raise GovernanceError("receipt skill inventory is invalid")
     seen: set[str] = set()
     for entry in skills:
         if not isinstance(entry, dict):
             raise GovernanceError("invalid receipt skill entry")
         name = entry.get("name")
-        if name not in SKILLS or name in seen:
+        if name not in known_skills or name in seen:
             raise GovernanceError("receipt contains an unknown or duplicate skill")
         seen.add(name)
         expected_path = str(Path(".agents/skills") / name / "SKILL.md")
@@ -785,7 +843,7 @@ def validate_receipt(data: Any, contract: dict[str, Any]) -> dict[str, Any]:
             raise GovernanceError(f"unknown managed skill hash for {name}")
         if not isinstance(entry.get("created"), bool):
             raise GovernanceError(f"invalid receipt ownership flag for {name}")
-    if seen != set(SKILLS):
+    if seen != set(known_skills):
         raise GovernanceError("receipt skill inventory is incomplete")
 
     config = data.get("config")
@@ -807,7 +865,19 @@ def validate_receipt(data: Any, contract: dict[str, Any]) -> dict[str, Any]:
         not isinstance(context, dict)
         or not isinstance(context.get("inserted"), bool)
         or not isinstance(context.get("pre_existing"), bool)
-        or (context["inserted"] and context["pre_existing"])
+    ):
+        raise GovernanceError("receipt context provenance is invalid")
+    if context["inserted"] and context["pre_existing"]:
+        parts = split_0_2_complexity_context(snapshot.get("context", ""))
+        if (
+            receipt_version != "0.2.0"
+            or parts is None
+            or context.get("pre_existing_value") != parts[0]
+            or context.get("value") != parts[1]
+        ):
+            raise GovernanceError("receipt context provenance is invalid")
+    elif (
+        context.get("pre_existing_value") is not None
         or context.get("value") != snapshot.get("context")
     ):
         raise GovernanceError("receipt context provenance is invalid")
@@ -1109,8 +1179,12 @@ def install_or_update(args: argparse.Namespace, update: bool) -> int:
         and previous_config.get("contract_sha256")
         != contract_semantic_hash(contract)
     ):
-        migration_base = uninstall_config(old_config, previous_config)
-        new_config, config_receipt = merge_config(migration_base, contract)
+        migrated = migrate_preexisting_0_1_context(old_config, previous, contract)
+        if migrated is None:
+            migration_base = uninstall_config(old_config, previous_config)
+            new_config, config_receipt = merge_config(migration_base, contract)
+        else:
+            new_config, config_receipt = migrated
     else:
         new_config, config_receipt = merge_config(old_config, contract)
         config_receipt = merge_provenance(previous_config, config_receipt)

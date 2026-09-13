@@ -27,6 +27,7 @@ class UninstallTests(TempProjectTest):
         self.assertIn("context: |", remaining)
         self.assertIn("Target project context added later.", remaining)
         self.assertNotIn(CONTRACT["context"], remaining)
+        self.assertNotIn("Brownfield Simplicity Policy:", remaining)
         for name in SKILL_HASHES:
             self.assertFalse(
                 (self.root / ".agents/skills" / name / "SKILL.md").exists()

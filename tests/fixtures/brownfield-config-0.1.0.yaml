@@ -68,19 +68,6 @@ context_append: |
   If the brownfield map is materially stale relative to the current repository,
   surface that fact instead of treating stale AS-IS information as current.
 
-  Brownfield Simplicity Policy:
-
-  - Prefer existing mechanisms for structural decisions: Reuse → Extend → Local
-    Refactor → Introduce New.
-  - Material new complexity requires a current requirement, existing architectural
-    constraint, or real current variability; hypothetical future extensibility
-    alone is insufficient.
-  - Avoid unjustified parallel mechanisms, duplicate ownership, and additional
-    sources of truth.
-  - Simplicity does not weaken correctness, security, data integrity, required
-    reliability, required compatibility, Approved Product Boundaries, or real
-    architectural invariants.
-
 rules_append:
   proposal:
     - Before repeating research for a proposed scope, inspect `openspec/deferred-changes/README.md` and any relevant preserved deferred work; reconcile it with current code/tests, the brownfield baseline, Approved product documents, and OpenSpec main specs before reuse.
@@ -99,12 +86,11 @@ rules_append:
     - Assess architecture impact only where material to the change, including capability ownership, runtime or execution-context boundaries, process/message boundaries, trust and authorization boundaries, data authority/ownership, persistence/lifecycle/deletion, privacy/consent/information flow, external integrations, compatibility/versioning, and evidence semantics.
     - Do not impose a frontend/backend, service, container, database, account, or deployment split that is not justified by the actual system or the proposed change.
     - For an architecturally significant decision with multiple meaningful alternatives, compare the relevant alternatives and explain the selected trade-off. Do not manufacture alternatives when the decision is technically constrained.
-    - Before introducing a materially new mechanism, evaluate reuse, extension, and bounded local refactoring of the existing system. Material new complexity must be justified by a current requirement, existing architectural constraint, or real current variability; hypothetical future variability alone is insufficient.
-    - For structural or persistent-state changes, prefer incremental migration and address compatibility, recovery/restart behavior, cleanup, and rollback when they are materially relevant. Before adding edge-case recovery machinery, first consider invariant prevention, boundary validation/rejection, and the existing failure path.
+    - For structural or persistent-state changes, prefer incremental migration and address compatibility, recovery/restart behavior, cleanup, and rollback when they are materially relevant.
     - If implementation of the proposed design would require changing an Approved product decision that has not been explicitly approved for amendment, surface that as a blocker rather than silently designing around it.
 
   tasks:
-    - Derive implementation tasks from the approved proposal/specs/design rather than introducing new product scope, implementation infrastructure, responsibility paths, or architectural decisions absent from or unjustified by design.
+    - Derive implementation tasks from the approved proposal/specs/design rather than introducing new product scope or architectural decisions in tasks.
     - Include appropriate verification for changed behavior and affected invariants using the project's existing unit, contract, property, integration, or E2E test layers where applicable.
     - If the approved change materially changes the persistent AS-IS system baseline, include a task to refresh `openspec/system/brownfield-map.md`.
     - If the approved change explicitly amends Approved product, access, or boundary decisions, include the corresponding persistent-document update as part of the change.
@@ -114,8 +100,7 @@ operations_append:
   apply:
     guidance:
       - Preserve the Approved product boundaries and scope recorded in the planning artifacts. Passing tests or implementation convenience is not approval to amend an Approved product decision.
-      - Before the first application-code modification, run `brownfield-complexity-gate` against the completed change planning and relevant existing architecture. On PASS, continue normal apply. On REVISE, do not modify application code; simplify or reconcile `design.md` and/or `tasks.md`, then rerun the gate.
-      - If implementation reveals a previously unidentified cross-capability, ownership, trust, data, lifecycle, privacy, compatibility, Product Boundary impact, or materially new architectural complexity or infrastructure not justified by approved design, surface the mismatch and reconcile the planning artifacts before absorbing it into implementation. Make the decision explicit and rerun `brownfield-complexity-gate` before implementing it.
+      - If implementation reveals a previously unidentified cross-capability, ownership, trust, data, lifecycle, privacy, compatibility, or Product Boundary impact, surface the mismatch and reconcile the planning artifacts before absorbing that scope into the implementation.
       - Do not silently turn an implementation discovery into a new product decision.
 
   archive:

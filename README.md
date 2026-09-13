@@ -2,12 +2,12 @@
 
 `openspec-brownfield-governance` is a standalone overlay for an already
 initialized OpenSpec project using the standard `spec-driven` schema. It
-packages three audited Codex skills and the brownfield configuration rules that
-connect persistent AS-IS evidence, approved product boundaries, normal OpenSpec
-changes, and cross-change sequencing.
+packages three audited Codex skills, `brownfield-complexity-gate`, and the
+brownfield configuration rules that connect persistent AS-IS evidence, approved
+product boundaries, normal OpenSpec changes, and cross-change sequencing.
 
-Version 0.1.0 is a faithful extraction of an existing working installation. It
-is not a redesign.
+Version 0.2.0 adds a read-only semantic pre-apply gate to the faithful 0.1.0
+extraction. It does not redesign OpenSpec or its lifecycle.
 
 ## Ownership
 
@@ -16,6 +16,7 @@ The distribution owns:
 - `brownfield-map`;
 - `product-boundaries`;
 - `cross-change-roadmap`;
+- `brownfield-complexity-gate`;
 - the additive brownfield config clauses;
 - the empty deferred-change index structure;
 - its receipt and bootstrap machinery.
@@ -24,6 +25,16 @@ OpenSpec owns `.agents/skills/openspec-*`, `.openspec-target`, the
 `spec-driven` schema, and the standard lifecycle. The target project owns all
 maps, product documents, roadmaps, PRDs, specs, changes, archives, and deferred
 change records.
+
+## Governed workflow
+
+The standard OpenSpec workflow remains unchanged. After a change's planning is
+complete and before application-code modification, the governed Codex/OpenSpec
+workflow runs `brownfield-complexity-gate`.
+
+`PASS` continues normal apply. `REVISE` requires reconciliation of planning
+before application-code changes and then reruns the gate. This is mandatory
+agent guidance, not a mechanical hook.
 
 ## Install
 

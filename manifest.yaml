@@ -1,9 +1,9 @@
 name: openspec-brownfield-governance
-version: 0.1.0
+version: 0.2.0
 purpose: Faithful standalone packaging of the already working audited modernization.
 
 required_openspec_schema: spec-driven
-config_contract_semantic_sha256: adbd8527b62c6c0e0f81e99e15942851c656c54627ad93974e5bf5a05a6d9dca
+config_contract_semantic_sha256: b1c1e0bb9373a9a19917b8513f0f7226b30c5988fe4601346207745913f33e1b
 tested_openspec_versions:
   - 1.12.0
   - 1.13.0
@@ -24,6 +24,10 @@ owned_skills:
     source: skills/cross-change-roadmap/SKILL.md
     target: .agents/skills/cross-change-roadmap/SKILL.md
     sha256: 26d2ba26fa20af3b88b5d4a271d132f202a499003bfb0e0265808015562c024b
+  - name: brownfield-complexity-gate
+    source: skills/brownfield-complexity-gate/SKILL.md
+    target: .agents/skills/brownfield-complexity-gate/SKILL.md
+    sha256: c0c9f93219267309c45988e144203eaf9c7a47141633b0ddadec526964a63696
 
 distribution_owned:
   - README.md

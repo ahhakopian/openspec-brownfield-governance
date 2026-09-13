@@ -5,7 +5,10 @@ The package preserves the ordinary OpenSpec lifecycle:
 ```text
 OpenSpec propose
 -> human review
--> OpenSpec apply
+-> planning complete
+-> brownfield-complexity-gate
+   -> PASS -> OpenSpec apply
+   -> REVISE -> reconcile design/tasks -> brownfield-complexity-gate
 -> implementation verification
 -> refresh brownfield map when materially affected
 -> OpenSpec archive

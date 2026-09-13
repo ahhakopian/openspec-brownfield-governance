@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from unittest import mock
 
@@ -5,6 +6,7 @@ from support import (
     BOOTSTRAP,
     CONTRACT,
     MODULE,
+    RELEASE_VERSION,
     SKILL_HASHES,
     TempProjectTest,
     digest_tree,
@@ -37,13 +39,22 @@ class InstallTests(TempProjectTest):
     def test_clean_install_and_second_install_are_idempotent(self):
         self.assertEqual(MODULE.SKILLS, SKILL_HASHES)
         result = invoke(self.root, self.env, "install")
-        self.assertIn("Installed openspec-brownfield-governance 0.1.0", result.stdout)
+        self.assertIn(
+            f"Installed openspec-brownfield-governance {RELEASE_VERSION}", result.stdout
+        )
         for name, expected in SKILL_HASHES.items():
             target = self.root / ".agents/skills" / name / "SKILL.md"
             self.assertTrue(target.is_file())
             self.assertEqual(MODULE.sha256_path(target), expected)
         self.assertTrue(
             (self.root / "openspec/deferred-changes/README.md").is_file()
+        )
+        receipt = json.loads(
+            (self.root / ".openspec-brownfield-governance/receipt.json").read_text()
+        )
+        self.assertEqual(receipt["distribution_version"], RELEASE_VERSION)
+        self.assertEqual(
+            {entry["name"] for entry in receipt["skills"]}, set(SKILL_HASHES)
         )
         self.assertFalse(
             MODULE.config_complete(

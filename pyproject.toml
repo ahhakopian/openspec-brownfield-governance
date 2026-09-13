@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "openspec-brownfield-governance"
-version = "0.1.0"
+version = "0.2.0"
 description = "Faithful standalone packaging of an audited OpenSpec brownfield governance overlay"
 requires-python = ">=3.10"
 dependencies = []
