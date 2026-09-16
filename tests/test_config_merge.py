@@ -25,7 +25,7 @@ class ConfigMergeTests(TempProjectTest):
         ).encode()
         self.assertEqual(
             hashlib.sha256(canonical).hexdigest(),
-            "f384a95f182d8233d31aac89b77a07667ab9a6408cf9ea369009f9f599c706e7",
+            "bdbbb4d33399c0bc37b676f9b3ddf7aa359bcd762149d74e9d71e3d23dc47c33",
         )
         self.assertEqual(
             {name: len(items) for name, items in CONTRACT["rules"].items()},
@@ -33,16 +33,70 @@ class ConfigMergeTests(TempProjectTest):
         )
         self.assertEqual(
             {name: len(items) for name, items in CONTRACT["operations"].items()},
-            {"apply": 4, "archive": 5},
+            {"apply": 6, "archive": 7},
         )
 
-    def test_archive_contract_requires_incremental_map_maintenance_for_every_change(self):
+    def test_ui_lifecycle_precedes_complexity_and_archive_map_maintenance(self):
+        apply = CONTRACT["operations"]["apply"]
         archive = CONTRACT["operations"]["archive"]
-        self.assertIn("every verified Change", archive[0])
-        self.assertIn("remove or replace", archive[0])
-        self.assertIn("internal architectural consistency only", archive[1])
-        self.assertIn("only the relevant repository code, tests, or configuration", archive[2])
+        preflight = next(
+            index for index, item in enumerate(apply)
+            if "brownfield-ui-preflight" in item
+        )
+        complexity = next(
+            index for index, item in enumerate(apply)
+            if "brownfield-complexity-gate" in item
+        )
+        conformance = next(
+            index for index, item in enumerate(archive)
+            if "brownfield-ui-conformance" in item
+        )
+        final_verification = next(
+            index for index, item in enumerate(archive)
+            if "final OpenSpec verification" in item
+        )
+        map_maintenance = next(
+            index for index, item in enumerate(archive)
+            if "every verified Change" in item
+        )
+        self.assertLess(preflight, complexity)
+        self.assertLess(
+            archive[conformance].index("brownfield-ui-conformance"),
+            archive[conformance].index("final OpenSpec verification"),
+        )
+        self.assertLess(final_verification, map_maintenance)
+        self.assertIn("remove or replace", archive[map_maintenance])
+        self.assertIn("internal architectural consistency only", archive[map_maintenance + 1])
+        self.assertIn(
+            "only the relevant repository code, tests, or configuration",
+            archive[map_maintenance + 2],
+        )
         self.assertNotIn("materially changed", "\n".join(archive))
+
+    def test_preexisting_ui_guidance_remains_target_owned_on_uninstall(self):
+        preexisting = CONTRACT["operations"]["apply"][1]
+        initial = (
+            "schema: spec-driven\n\noperations:\n  apply:\n    guidance:\n"
+            "      - " + json.dumps(preexisting) + "\n"
+        )
+        self.root, self.env = make_project(self.temp / "preexisting-ui", initial)
+
+        invoke(self.root, self.env, "install")
+        receipt = json.loads(
+            (self.root / ".openspec-brownfield-governance/receipt.json").read_text()
+        )
+        provenance = receipt["config"]["operations"]["apply"]
+        self.assertIn(preexisting, provenance["pre_existing"])
+        self.assertNotIn(preexisting, provenance["inserted"])
+
+        invoke(self.root, self.env, "uninstall")
+        values = [
+            value
+            for _, value in MODULE.YamlText(
+                (self.root / "openspec/config.yaml").read_text()
+            ).list_values(("operations", "apply", "guidance"))
+        ]
+        self.assertEqual(values, [preexisting])
 
     def test_complexity_contract_clauses_are_merged_once_and_reinstall_is_idempotent(self):
         invoke(self.root, self.env, "install")

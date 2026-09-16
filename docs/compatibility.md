@@ -1,6 +1,6 @@
 # Compatibility
 
-Version 0.2.0 has been tested only with:
+Version 0.4.0 has been tested only with:
 
 - OpenSpec 1.12.0;
 - OpenSpec 1.13.0.
@@ -9,7 +9,7 @@ No broader semantic-version compatibility is claimed. The installer rejects
 other versions unless the package is updated and tested for them.
 
 Both tested versions use the normal `spec-driven` config and preserve the
-four non-`openspec-*` skills during `openspec update`.
+seven non-`openspec-*` skills during `openspec update`.
 
 The package requires the Codex integration layout under `.agents/skills`.
 It does not install or alter that integration.

@@ -32,6 +32,7 @@ KNOWN_CONFIG_CONTRACT_HASHES = {
     "0.1.0": "adbd8527b62c6c0e0f81e99e15942851c656c54627ad93974e5bf5a05a6d9dca",
     "0.2.0": "b1c1e0bb9373a9a19917b8513f0f7226b30c5988fe4601346207745913f33e1b",
     "0.3.0": "f384a95f182d8233d31aac89b77a07667ab9a6408cf9ea369009f9f599c706e7",
+    "0.4.0": "bdbbb4d33399c0bc37b676f9b3ddf7aa359bcd762149d74e9d71e3d23dc47c33",
 }
 SKILLS_0_1_0 = {
     "brownfield-map": "e8dc54021787e5d9d850f41820bab42ef26a764f91a082b9c33ce5ff1ad087c5",
@@ -48,15 +49,24 @@ SKILLS = {
     "brownfield-map": "0fe4dd43ae266139be87e833490c29e6639849c1fb55a7dd6f14c256b13e8378",
     "cross-change-roadmap": "b2f11bcc1d7ed052c80aa5dec5c7e1b0b862b396d79f6df8b085186fffb2339d",
 }
+SKILLS_0_3_0 = SKILLS
+SKILLS = {
+    **SKILLS_0_3_0,
+    "brownfield-ui-context": "55da093443744dbb861b582f407f70f7ecaa222dc78e646f21d07fc28778f1ac",
+    "brownfield-ui-preflight": "8018880f5112bc637159ed9e87baec43b1f78c2cd6fe6e8918a908cfe05ae6a2",
+    "brownfield-ui-conformance": "6f103d1166f9233d25ab27924865c1f65ecc6f1dd4f1d797c638a0a0adaa6721",
+}
 KNOWN_SKILL_HASHES = {
     "0.1.0": SKILLS_0_1_0,
     "0.2.0": SKILLS_0_2_0,
-    "0.3.0": SKILLS,
+    "0.3.0": SKILLS_0_3_0,
+    "0.4.0": SKILLS,
 }
 KNOWN_TEMPLATE_HASHES = {
     "0.1.0": "96f5090364bd6e0293e826ab0907f8ca6709a696550d28d2ed76958a7cad4afc",
     "0.2.0": "96f5090364bd6e0293e826ab0907f8ca6709a696550d28d2ed76958a7cad4afc",
     "0.3.0": "96f5090364bd6e0293e826ab0907f8ca6709a696550d28d2ed76958a7cad4afc",
+    "0.4.0": "96f5090364bd6e0293e826ab0907f8ca6709a696550d28d2ed76958a7cad4afc",
 }
 PROJECT_OWNED_NOTICE_PATHS = (
     "PRD.canonical.md",
@@ -599,25 +609,41 @@ def split_0_2_complexity_context(context: str) -> tuple[str, str] | None:
 def migrate_preexisting_0_1_context(
     text: str, previous: dict[str, Any], contract: dict[str, Any]
 ) -> tuple[str, dict[str, Any]] | None:
-    if previous.get("distribution_version") != "0.1.0":
+    if previous.get("distribution_version") not in ("0.1.0", "0.2.0", "0.3.0"):
         return None
     previous_config = previous.get("config", {})
     previous_context = previous_config.get("context", {})
-    historical_context = previous_context.get("value")
     snapshot = previous_config.get("contract_snapshot", {})
-    if (
-        previous_context.get("inserted")
-        or not previous_context.get("pre_existing")
-        or not isinstance(historical_context, str)
-        or snapshot.get("context") != historical_context
-    ):
-        return None
+    if previous_context.get("inserted") and previous_context.get("pre_existing"):
+        historical_context = previous_context.get("pre_existing_value")
+        inserted_context = previous_context.get("value")
+        if (
+            not isinstance(historical_context, str)
+            or not isinstance(inserted_context, str)
+            or snapshot.get("context")
+            != historical_context + "\n\n" + inserted_context
+        ):
+            return None
+    else:
+        historical_context = previous_context.get("value")
+        if (
+            previous_context.get("inserted")
+            or not previous_context.get("pre_existing")
+            or not isinstance(historical_context, str)
+            or snapshot.get("context") != historical_context
+        ):
+            return None
     parts = split_0_2_complexity_context(contract["context"])
     if parts is None or parts[0] != historical_context:
         return None
     editor = YamlText(text)
+    expected_context = snapshot.get("context")
     block = editor.literal_block("context")
-    if block is None or "\n".join(block[2]).rstrip("\n") != historical_context:
+    if (
+        not isinstance(expected_context, str)
+        or block is None
+        or "\n".join(block[2]).rstrip("\n") != expected_context
+    ):
         return None
 
     migration_base = uninstall_config(text, previous_config)
@@ -879,7 +905,7 @@ def validate_receipt(data: Any, contract: dict[str, Any]) -> dict[str, Any]:
     if context["inserted"] and context["pre_existing"]:
         parts = split_0_2_complexity_context(snapshot.get("context", ""))
         if (
-            receipt_version not in ("0.2.0", "0.3.0")
+            receipt_version not in ("0.2.0", "0.3.0", "0.4.0")
             or parts is None
             or context.get("pre_existing_value") != parts[0]
             or context.get("value") != parts[1]

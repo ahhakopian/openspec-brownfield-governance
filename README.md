@@ -2,13 +2,12 @@
 
 `openspec-brownfield-governance` is a standalone overlay for an already
 initialized OpenSpec project using the standard `spec-driven` schema. It
-packages three audited Codex skills, `brownfield-complexity-gate`, and the
-brownfield configuration rules that connect persistent AS-IS evidence, approved
-product boundaries, normal OpenSpec changes, and cross-change sequencing.
+packages seven audited Codex skills and the brownfield configuration rules that
+connect persistent AS-IS evidence, approved product boundaries, normal OpenSpec
+changes, UI governance, and cross-change sequencing.
 
-Version 0.3.0 retains the read-only semantic pre-apply gate introduced in
-0.2.0 and adds mandatory incremental brownfield-map maintenance per verified
-Change. It does not redesign OpenSpec or its lifecycle.
+Version 0.4.0 adds governed UI review around materially UI-affecting Changes.
+It does not redesign OpenSpec or its lifecycle.
 
 ## Ownership
 
@@ -18,6 +17,9 @@ The distribution owns:
 - `product-boundaries`;
 - `cross-change-roadmap`;
 - `brownfield-complexity-gate`;
+- `brownfield-ui-context`;
+- `brownfield-ui-preflight`;
+- `brownfield-ui-conformance`;
 - the additive brownfield config clauses;
 - the empty deferred-change index structure;
 - its receipt and bootstrap machinery.
@@ -29,9 +31,32 @@ change records.
 
 ## Governed workflow
 
-The standard OpenSpec workflow remains unchanged. After a change's planning is
-complete and before application-code modification, the governed Codex/OpenSpec
-workflow runs `brownfield-complexity-gate`.
+The standard non-UI OpenSpec workflow remains unchanged. After a non-UI
+Change's planning is complete and before application-code modification, the
+governed Codex/OpenSpec workflow runs `brownfield-complexity-gate`.
+
+For a materially UI-affecting Change, the governed workflow is:
+
+```text
+planning
+→ brownfield-ui-preflight
+→ brownfield-complexity-gate
+→ apply
+→ project verification
+→ browser-verification
+→ native Impeccable critique
+→ brownfield-ui-conformance
+→ final OpenSpec verification
+→ incremental brownfield-map maintenance
+→ archive/spec synchronization
+→ roadmap reconciliation
+```
+
+`brownfield-ui-context` is setup and reconciliation, not a gate. It is used
+only when an applicable UI review needs missing or materially stale
+`PRODUCT.md`; non-UI work does not require `PRODUCT.md` or Impeccable
+readiness. Impeccable remains the external native UX workflow provider, and
+`browser-verification` remains the external browser-evidence provider.
 
 `PASS` continues normal apply. `REVISE` requires reconciliation of planning
 before application-code changes and then reruns the gate. This is mandatory

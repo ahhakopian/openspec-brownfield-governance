@@ -17,6 +17,26 @@ from support import (
 
 
 class InstallTests(TempProjectTest):
+    def test_install_registers_ui_skills_without_product_or_external_tooling(self):
+        upstream = self.root / ".agents/skills/openspec-apply/SKILL.md"
+        upstream.parent.mkdir(parents=True)
+        upstream.write_text("# upstream sentinel\n")
+
+        invoke(self.root, self.env, "install")
+
+        for name in (
+            "brownfield-ui-context",
+            "brownfield-ui-preflight",
+            "brownfield-ui-conformance",
+        ):
+            target = self.root / ".agents/skills" / name / "SKILL.md"
+            self.assertTrue(target.is_file())
+            self.assertEqual(MODULE.sha256_path(target), SKILL_HASHES[name])
+        self.assertEqual(upstream.read_text(), "# upstream sentinel\n")
+        self.assertFalse((self.root / "PRODUCT.md").exists())
+        self.assertFalse((self.root / ".agents/skills/impeccable").exists())
+        self.assertFalse((self.root / ".agents/skills/browser-verification").exists())
+
     def test_package_integrity_checks_config_contract_and_template(self):
         damaged_contract = self.temp / "damaged-contract.yaml"
         damaged_contract.write_text(MODULE.CONTRACT_PATH.read_text() + "\n# damage\n")

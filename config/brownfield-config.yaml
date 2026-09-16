@@ -81,6 +81,12 @@ context_append: |
     reliability, required compatibility, Approved Product Boundaries, or real
     architectural invariants.
 
+  - `PRODUCT.md`, when present,
+    Project-owned auxiliary durable context for native Impeccable workflows.
+    It cannot override Approved product authority for durable product intent,
+    OpenSpec for specified behavior, or the repository, relevant tests, and
+    `brownfield-map.md` for AS-IS facts.
+
 rules_append:
   proposal:
     - Before repeating research for a proposed scope, inspect `openspec/deferred-changes/README.md` and any relevant preserved deferred work; reconcile it with current code/tests, the brownfield baseline, Approved product documents, and OpenSpec main specs before reuse.
@@ -114,12 +120,16 @@ operations_append:
   apply:
     guidance:
       - Preserve the Approved product boundaries and scope recorded in the planning artifacts. Passing tests or implementation convenience is not approval to amend an Approved product decision.
-      - Before the first application-code modification, run `brownfield-complexity-gate` against the completed change planning and relevant existing architecture. On PASS, continue normal apply. On REVISE, do not modify application code; simplify or reconcile `design.md` and/or `tasks.md`, then rerun the gate.
+      - After planning is complete and before the first application-code modification, determine semantically whether the Change materially affects UI. When it does, run `brownfield-ui-preflight`; on REVISE, do not modify application code, reconcile the affected planning, and rerun UI preflight until PASS.
+      - After any applicable UI preflight has passed and before the first application-code modification, run `brownfield-complexity-gate` against the completed change planning and relevant existing architecture. On PASS, continue normal apply. On REVISE, do not modify application code; simplify or reconcile `design.md` and/or `tasks.md`, then rerun the gate.
+      - If a later planning revision materially changes the user-visible interaction, rerun `brownfield-ui-preflight` and obtain PASS before rerunning `brownfield-complexity-gate`.
       - If implementation reveals a previously unidentified cross-capability, ownership, trust, data, lifecycle, privacy, compatibility, Product Boundary impact, or materially new architectural complexity or infrastructure not justified by approved design, surface the mismatch and reconcile the planning artifacts before absorbing it into implementation. Make the decision explicit and rerun `brownfield-complexity-gate` before implementing it.
       - Do not silently turn an implementation discovery into a new product decision.
 
   archive:
     guidance:
+      - For every materially UI-affecting Change, complete normal implementation and task verification, obtain browser-verification evidence bounded to the affected UI behavior, and run native Impeccable `critique` against the implemented surface.
+      - Reconcile the browser and native critique results through `brownfield-ui-conformance` until PASS, then perform final OpenSpec verification before the existing accepted-AS-IS and archive sequence.
       - Before archiving every verified Change, incrementally update `openspec/system/brownfield-map.md`: add newly existing AS-IS architecture from the implemented Change, and remove or replace AS-IS descriptions it superseded.
       - Check the updated map for internal architectural consistency only. If it is consistent, do not require a full repository/code/test/configuration validation or rescan.
       - If the map has an internal contradiction, localize the conflicting statements; inspect only the relevant repository code, tests, or configuration needed to resolve that contradiction; correct the map to the actual AS-IS; and repeat the internal-consistency check before archive.

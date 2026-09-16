@@ -17,9 +17,28 @@ from support import (
 )
 
 
+HISTORICAL_0_1_REVISION = "cbeed5e67d7aa9cb2a1d08580f8c5cedc46bbff1"
+HISTORICAL_0_3_REVISION = "cd0932a9b7aaa83a7bd1e290698433ed922f7287"
+
+
 class UpdateTests(TempProjectTest):
     def historical_contract(self):
         fixture = REPO / "tests/fixtures/brownfield-config-0.1.0.yaml"
+        with mock.patch.object(MODULE, "CONTRACT_PATH", fixture):
+            return MODULE.parse_contract()
+
+    def historical_0_3_contract(self):
+        fixture = self.temp / "brownfield-config-0.3.0.yaml"
+        fixture.write_bytes(
+            subprocess.check_output(
+                [
+                    "git",
+                    "show",
+                    f"{HISTORICAL_0_3_REVISION}:config/brownfield-config.yaml",
+                ],
+                cwd=REPO,
+            )
+        )
         with mock.patch.object(MODULE, "CONTRACT_PATH", fixture):
             return MODULE.parse_contract()
 
@@ -56,7 +75,12 @@ class UpdateTests(TempProjectTest):
             target = self.root / ".agents/skills" / name / "SKILL.md"
             target.parent.mkdir(parents=True, exist_ok=True)
             source = subprocess.check_output(
-                ["git", "show", f"HEAD:skills/{name}/SKILL.md"], cwd=REPO
+                [
+                    "git",
+                    "show",
+                    f"{HISTORICAL_0_1_REVISION}:skills/{name}/SKILL.md",
+                ],
+                cwd=REPO,
             )
             target.write_bytes(source)
             self.assertEqual(MODULE.sha256_path(target), expected)
@@ -84,7 +108,7 @@ class UpdateTests(TempProjectTest):
         receipt_path.write_text(json.dumps(receipt))
         return contract
 
-    def test_update_migrates_valid_0_1_0_installation_to_four_skill_0_2_0(self):
+    def test_update_migrates_valid_0_1_0_installation_to_seven_skill_0_4_0(self):
         historical_contract = self.install_historical_0_1_0()
         previous = MODULE.read_receipt(self.root, CONTRACT)
         self.assertEqual(previous["distribution_version"], HISTORICAL_VERSION)
@@ -168,6 +192,68 @@ class UpdateTests(TempProjectTest):
         self.assertIn("Target-owned apply guidance.", remaining)
         self.assertNotIn("Brownfield Simplicity Policy:", remaining)
         self.assertFalse(gate.exists())
+
+    def test_update_preserves_historical_preexisting_context_through_0_3_0(self):
+        historical_context = self.install_historical_0_1_0(preexisting_context=True)
+        old_contract = self.historical_0_3_contract()
+        previous = MODULE.read_receipt(self.root, CONTRACT)
+        old_config = (self.root / "openspec/config.yaml").read_text()
+        migrated, config_receipt = MODULE.migrate_preexisting_0_1_context(
+            old_config, previous, old_contract
+        )
+        self.assertIsNotNone(migrated)
+        (self.root / "openspec/config.yaml").write_text(migrated)
+
+        skills = []
+        for name, expected in MODULE.KNOWN_SKILL_HASHES["0.3.0"].items():
+            target = self.root / ".agents/skills" / name / "SKILL.md"
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(
+                subprocess.check_output(
+                    [
+                        "git",
+                        "show",
+                        f"{HISTORICAL_0_3_REVISION}:skills/{name}/SKILL.md",
+                    ],
+                    cwd=REPO,
+                )
+            )
+            self.assertEqual(MODULE.sha256_path(target), expected)
+            skills.append(
+                {
+                    "name": name,
+                    "path": str(Path(".agents/skills") / name / "SKILL.md"),
+                    "hash": expected,
+                    "created": True,
+                }
+            )
+        receipt = {
+            "format": 1,
+            "package": MODULE.PACKAGE_NAME,
+            "distribution_version": "0.3.0",
+            "openspec_version": "1.12.0",
+            "installed_at": "2026-01-01T00:00:00+00:00",
+            "skills": skills,
+            "config": config_receipt,
+            "generated_structural_files": [],
+        }
+        receipt["integrity_sha256"] = MODULE.receipt_integrity(receipt)
+        receipt_path = self.root / ".openspec-brownfield-governance/receipt.json"
+        receipt_path.write_text(json.dumps(receipt))
+
+        invoke(self.root, self.env, "update")
+
+        self.assertEqual(
+            {entry["name"] for entry in MODULE.read_receipt(self.root, CONTRACT)["skills"]},
+            set(SKILL_HASHES),
+        )
+        invoke(self.root, self.env, "uninstall")
+        remaining_context = "\n".join(
+            MODULE.YamlText(
+                (self.root / "openspec/config.yaml").read_text()
+            ).literal_block("context")[2]
+        )
+        self.assertEqual(remaining_context.rstrip("\n"), historical_context["context"])
 
     def test_structural_template_update_and_ownership_transfer(self):
         index = self.root / "openspec/deferred-changes/README.md"

@@ -1,9 +1,9 @@
 name: openspec-brownfield-governance
-version: 0.3.0
+version: 0.4.0
 purpose: Faithful standalone packaging of the already working audited modernization.
 
 required_openspec_schema: spec-driven
-config_contract_semantic_sha256: f384a95f182d8233d31aac89b77a07667ab9a6408cf9ea369009f9f599c706e7
+config_contract_semantic_sha256: bdbbb4d33399c0bc37b676f9b3ddf7aa359bcd762149d74e9d71e3d23dc47c33
 tested_openspec_versions:
   - 1.12.0
   - 1.13.0
@@ -28,6 +28,18 @@ owned_skills:
     source: skills/brownfield-complexity-gate/SKILL.md
     target: .agents/skills/brownfield-complexity-gate/SKILL.md
     sha256: c0c9f93219267309c45988e144203eaf9c7a47141633b0ddadec526964a63696
+  - name: brownfield-ui-context
+    source: skills/brownfield-ui-context/SKILL.md
+    target: .agents/skills/brownfield-ui-context/SKILL.md
+    sha256: 55da093443744dbb861b582f407f70f7ecaa222dc78e646f21d07fc28778f1ac
+  - name: brownfield-ui-preflight
+    source: skills/brownfield-ui-preflight/SKILL.md
+    target: .agents/skills/brownfield-ui-preflight/SKILL.md
+    sha256: 8018880f5112bc637159ed9e87baec43b1f78c2cd6fe6e8918a908cfe05ae6a2
+  - name: brownfield-ui-conformance
+    source: skills/brownfield-ui-conformance/SKILL.md
+    target: .agents/skills/brownfield-ui-conformance/SKILL.md
+    sha256: 6f103d1166f9233d25ab27924865c1f65ecc6f1dd4f1d797c638a0a0adaa6721
 
 distribution_owned:
   - README.md
