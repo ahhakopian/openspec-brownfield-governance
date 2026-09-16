@@ -6,8 +6,9 @@ packages three audited Codex skills, `brownfield-complexity-gate`, and the
 brownfield configuration rules that connect persistent AS-IS evidence, approved
 product boundaries, normal OpenSpec changes, and cross-change sequencing.
 
-Version 0.2.0 adds a read-only semantic pre-apply gate to the faithful 0.1.0
-extraction. It does not redesign OpenSpec or its lifecycle.
+Version 0.3.0 retains the read-only semantic pre-apply gate introduced in
+0.2.0 and adds mandatory incremental brownfield-map maintenance per verified
+Change. It does not redesign OpenSpec or its lifecycle.
 
 ## Ownership
 
@@ -35,6 +36,21 @@ workflow runs `brownfield-complexity-gate`.
 `PASS` continues normal apply. `REVISE` requires reconciliation of planning
 before application-code changes and then reruns the gate. This is mandatory
 agent guidance, not a mechanical hook.
+
+After every verified OpenSpec Change and before archive,
+`openspec/system/brownfield-map.md` receives incremental maintenance: add
+AS-IS architecture introduced by the implemented Change, and remove or replace
+AS-IS architecture it superseded. Check the resulting map for internal
+architectural consistency. If it is consistent, no routine full
+repository/code rescan is required. If it contains a contradiction, inspect
+only repository evidence relevant to that contradiction, resolve the map, and
+recheck consistency.
+
+Full brownfield discovery/reconstruction remains separate for bootstrap,
+missing or stale baselines, or a deliberate full refresh; it is not run after
+every Change. After archive, `cross-change-roadmap` consumes the already
+maintained baseline to reconcile downstream planning; it does not update or
+validate the map.
 
 ## Install
 

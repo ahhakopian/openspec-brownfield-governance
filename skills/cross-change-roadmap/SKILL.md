@@ -276,7 +276,7 @@ List the recommended order with a short reason for each position.
 
 Include that after every completed/archived change:
 
-1. refresh the brownfield baseline when materially affected;
+1. after archive, use the resulting current brownfield baseline, the archived Change, and other relevant persistent planning information as inputs to reconciliation;
 2. reconcile this roadmap against the new repository state and OpenSpec main specs;
 3. mark completed work;
 4. reassess remaining dependencies/conflicts;

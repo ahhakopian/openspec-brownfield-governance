@@ -25,7 +25,7 @@ class ConfigMergeTests(TempProjectTest):
         ).encode()
         self.assertEqual(
             hashlib.sha256(canonical).hexdigest(),
-            "b1c1e0bb9373a9a19917b8513f0f7226b30c5988fe4601346207745913f33e1b",
+            "f384a95f182d8233d31aac89b77a07667ab9a6408cf9ea369009f9f599c706e7",
         )
         self.assertEqual(
             {name: len(items) for name, items in CONTRACT["rules"].items()},
@@ -33,8 +33,16 @@ class ConfigMergeTests(TempProjectTest):
         )
         self.assertEqual(
             {name: len(items) for name, items in CONTRACT["operations"].items()},
-            {"apply": 4, "archive": 4},
+            {"apply": 4, "archive": 5},
         )
+
+    def test_archive_contract_requires_incremental_map_maintenance_for_every_change(self):
+        archive = CONTRACT["operations"]["archive"]
+        self.assertIn("every verified Change", archive[0])
+        self.assertIn("remove or replace", archive[0])
+        self.assertIn("internal architectural consistency only", archive[1])
+        self.assertIn("only the relevant repository code, tests, or configuration", archive[2])
+        self.assertNotIn("materially changed", "\n".join(archive))
 
     def test_complexity_contract_clauses_are_merged_once_and_reinstall_is_idempotent(self):
         invoke(self.root, self.env, "install")

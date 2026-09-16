@@ -1,13 +1,19 @@
 ---
 name: brownfield-map
-description: Build or refresh an evidence-backed persistent AS-IS system baseline for an existing brownfield codebase. Use during initial OpenSpec bootstrap, after major structural changes, when the system map is missing or stale, or before a redesign whose impact cannot be understood safely from local openspec-explore alone. Do not use for ordinary local changes.
+description: Build or maintain an evidence-backed persistent AS-IS system baseline for an existing brownfield codebase. Use full discovery during initial OpenSpec bootstrap, when the system map is missing or stale, or before a redesign whose impact cannot be understood safely from local openspec-explore alone. Use incremental maintenance after every verified OpenSpec Change and before its archive.
 ---
 
 # Brownfield Map
 
-Build or refresh a verified persistent model of the system that actually exists in the repository now.
+Build or maintain a verified persistent model of the system that actually exists in the repository now.
 
-This is a systematic brownfield discovery and persistence workflow.
+This skill has two use cases:
+
+1. **Full discovery / bootstrap** — systematically establish or rebuild the
+   baseline from repository evidence.
+2. **Incremental post-Change maintenance** — after every verified OpenSpec
+   Change and before archive, apply that Change's implemented AS-IS result to
+   the existing map without a full repository rediscovery.
 
 Its output is descriptive AS-IS system knowledge for future OpenSpec planning.
 
@@ -41,7 +47,46 @@ Do not create additional persistent files.
 
 Previous Explore findings MAY be used as leads, but they are not authoritative merely because an agent produced them.
 
-Verify architecturally significant claims against repository evidence before persisting them.
+In full discovery, verify architecturally significant claims against repository
+evidence before persisting them. Incremental maintenance follows its dedicated
+workflow below.
+
+## Incremental post-Change maintenance
+
+Run this mode after implementation verification for **every** OpenSpec Change,
+before `openspec archive`.
+
+Start with the pre-Change map and the verified implemented Change. Update only
+the affected AS-IS statements:
+
+1. add newly existing AS-IS architecture introduced by the Change;
+2. remove or replace AS-IS architecture superseded by the Change.
+
+Conceptually:
+
+```text
+map_after = map_before - superseded AS-IS + implemented AS-IS
+```
+
+This is an edit rule, not a request to create a delta artifact. Do not perform
+a full refresh, rebuild, or repository-wide rescan merely because a Change
+completed.
+
+After the edit, check the map only for internal architectural consistency:
+statements in one part of the map must not contradict statements elsewhere in
+the map. If it is internally consistent, continue to archive without a general
+comparison of the map against repository code, tests, or configuration.
+
+If an internal contradiction is found:
+
+1. localize the conflicting map statements;
+2. inspect only the relevant code, tests, and/or configuration needed to
+   resolve that contradiction;
+3. determine the actual AS-IS and correct the conflicting map statements;
+4. repeat the internal-consistency check.
+
+Repository evidence is therefore a local arbiter for an identified map
+conflict, not a mandatory post-Change source for a full map validation.
 
 ## Core rules
 
@@ -103,7 +148,10 @@ Example:
 
 Do not rename source code or legacy artifacts.
 
-# Workflow
+# Full-discovery workflow
+
+Use the workflow below only for full discovery / bootstrap. Do not run it as a
+post-Change requirement in incremental maintenance mode.
 
 ## 1. Establish the snapshot
 
@@ -648,7 +696,7 @@ If it already exists:
 7. remove claims only when evidence establishes that they are obsolete or incorrect;
 8. preserve stable semantic capability IDs when possible.
 
-A refresh is not a blind rewrite.
+A full-discovery refresh is not a blind rewrite.
 
 # Required output structure
 
@@ -817,9 +865,22 @@ Before finishing verify that:
 
 If any criterion cannot be satisfied, state exactly what remains unknown instead of guessing.
 
+# Incremental-maintenance completion criteria
+
+Before archive, verify that:
+
+- implementation verification for the Change completed;
+- newly implemented AS-IS architecture was added to the map where applicable;
+- AS-IS descriptions superseded by the Change were removed or replaced;
+- the resulting map has been checked for internal architectural consistency;
+- any detected internal contradiction was resolved using only relevant local
+  repository evidence and the consistency check was repeated; and
+- no full repository rescan, delta artifact, or additional persistent document
+  was created.
+
 # Final response
 
-After writing or refreshing the map, report only:
+After full discovery / bootstrap, report only:
 
 1. path of the map;
 2. repository snapshot;
@@ -836,4 +897,7 @@ Do not proceed automatically to:
 - proposal creation;
 - implementation.
 
-Stop after completing `openspec/system/brownfield-map.md`.
+After incremental maintenance, report only that the map was updated for the
+verified Change, whether it was internally consistent, and any localized
+evidence consulted to resolve a detected conflict. Stop after completing
+`openspec/system/brownfield-map.md`.

@@ -106,9 +106,9 @@ rules_append:
   tasks:
     - Derive implementation tasks from the approved proposal/specs/design rather than introducing new product scope, implementation infrastructure, responsibility paths, or architectural decisions absent from or unjustified by design.
     - Include appropriate verification for changed behavior and affected invariants using the project's existing unit, contract, property, integration, or E2E test layers where applicable.
-    - If the approved change materially changes the persistent AS-IS system baseline, include a task to refresh `openspec/system/brownfield-map.md`.
+    - Include a task, after implementation verification and before archive, to incrementally maintain `openspec/system/brownfield-map.md` for every Change: add implemented AS-IS architecture and remove or replace superseded AS-IS descriptions.
     - If the approved change explicitly amends Approved product, access, or boundary decisions, include the corresponding persistent-document update as part of the change.
-    - Do not create documentation-update tasks for persistent documents that the change does not materially affect.
+    - Apart from the required brownfield-map maintenance, do not create documentation-update tasks for persistent documents that the change does not materially affect.
 
 operations_append:
   apply:
@@ -120,7 +120,8 @@ operations_append:
 
   archive:
     guidance:
-      - Before archiving, verify that any persistent-baseline updates required by the completed change were handled.
-      - Refresh `openspec/system/brownfield-map.md` when the completed change materially changed the AS-IS capability map, ownership/dependencies, runtime or trust topology, persistence/lifecycle, external integrations, compatibility model, or known gaps.
-      - "After the completed change and any required brownfield refresh, reconcile `openspec/roadmap.md`: mark completed work, reassess downstream dependencies/conflicts, and update the preliminary sequence when justified; do not create future change artifacts during roadmap refresh."
+      - Before archiving every verified Change, incrementally update `openspec/system/brownfield-map.md`: add newly existing AS-IS architecture from the implemented Change, and remove or replace AS-IS descriptions it superseded.
+      - Check the updated map for internal architectural consistency only. If it is consistent, do not require a full repository/code/test/configuration validation or rescan.
+      - If the map has an internal contradiction, localize the conflicting statements; inspect only the relevant repository code, tests, or configuration needed to resolve that contradiction; correct the map to the actual AS-IS; and repeat the internal-consistency check before archive.
+      - "After the completed Change and its required brownfield-map maintenance, reconcile `openspec/roadmap.md`: mark completed work, reassess downstream dependencies/conflicts, and update the preliminary sequence when justified; do not create future change artifacts during roadmap refresh."
       - Update Approved product/access/boundary documents only for amendments that received explicit human approval; archive or spec synchronization is not approval to change them.

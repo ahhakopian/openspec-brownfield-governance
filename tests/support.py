@@ -13,7 +13,7 @@ import unittest
 
 REPO = Path(__file__).resolve().parents[1]
 BOOTSTRAP = REPO / "bootstrap" / "openspec-brownfield.py"
-RELEASE_VERSION = "0.2.0"
+RELEASE_VERSION = "0.3.0"
 HISTORICAL_VERSION = "0.1.0"
 
 
@@ -28,9 +28,9 @@ def load_bootstrap():
 MODULE = load_bootstrap()
 CONTRACT = MODULE.parse_contract()
 SKILL_HASHES = {
-    "brownfield-map": "e8dc54021787e5d9d850f41820bab42ef26a764f91a082b9c33ce5ff1ad087c5",
+    "brownfield-map": "0fe4dd43ae266139be87e833490c29e6639849c1fb55a7dd6f14c256b13e8378",
     "product-boundaries": "e230369e9fb0d4a65c3866948b5b895431155e56f61801a3ee6d9ac8207d686c",
-    "cross-change-roadmap": "26d2ba26fa20af3b88b5d4a271d132f202a499003bfb0e0265808015562c024b",
+    "cross-change-roadmap": "b2f11bcc1d7ed052c80aa5dec5c7e1b0b862b396d79f6df8b085186fffb2339d",
     "brownfield-complexity-gate": "c0c9f93219267309c45988e144203eaf9c7a47141633b0ddadec526964a63696",
 }
 

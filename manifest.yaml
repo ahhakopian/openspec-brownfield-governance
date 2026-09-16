@@ -1,9 +1,9 @@
 name: openspec-brownfield-governance
-version: 0.2.0
+version: 0.3.0
 purpose: Faithful standalone packaging of the already working audited modernization.
 
 required_openspec_schema: spec-driven
-config_contract_semantic_sha256: b1c1e0bb9373a9a19917b8513f0f7226b30c5988fe4601346207745913f33e1b
+config_contract_semantic_sha256: f384a95f182d8233d31aac89b77a07667ab9a6408cf9ea369009f9f599c706e7
 tested_openspec_versions:
   - 1.12.0
   - 1.13.0
@@ -15,7 +15,7 @@ owned_skills:
   - name: brownfield-map
     source: skills/brownfield-map/SKILL.md
     target: .agents/skills/brownfield-map/SKILL.md
-    sha256: e8dc54021787e5d9d850f41820bab42ef26a764f91a082b9c33ce5ff1ad087c5
+    sha256: 0fe4dd43ae266139be87e833490c29e6639849c1fb55a7dd6f14c256b13e8378
   - name: product-boundaries
     source: skills/product-boundaries/SKILL.md
     target: .agents/skills/product-boundaries/SKILL.md
@@ -23,7 +23,7 @@ owned_skills:
   - name: cross-change-roadmap
     source: skills/cross-change-roadmap/SKILL.md
     target: .agents/skills/cross-change-roadmap/SKILL.md
-    sha256: 26d2ba26fa20af3b88b5d4a271d132f202a499003bfb0e0265808015562c024b
+    sha256: b2f11bcc1d7ed052c80aa5dec5c7e1b0b862b396d79f6df8b085186fffb2339d
   - name: brownfield-complexity-gate
     source: skills/brownfield-complexity-gate/SKILL.md
     target: .agents/skills/brownfield-complexity-gate/SKILL.md

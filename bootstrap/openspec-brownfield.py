@@ -31,6 +31,7 @@ SUPPORTED_OPENSPEC = ("1.12.0", "1.13.0")
 KNOWN_CONFIG_CONTRACT_HASHES = {
     "0.1.0": "adbd8527b62c6c0e0f81e99e15942851c656c54627ad93974e5bf5a05a6d9dca",
     "0.2.0": "b1c1e0bb9373a9a19917b8513f0f7226b30c5988fe4601346207745913f33e1b",
+    "0.3.0": "f384a95f182d8233d31aac89b77a07667ab9a6408cf9ea369009f9f599c706e7",
 }
 SKILLS_0_1_0 = {
     "brownfield-map": "e8dc54021787e5d9d850f41820bab42ef26a764f91a082b9c33ce5ff1ad087c5",
@@ -41,13 +42,21 @@ SKILLS = {
     **SKILLS_0_1_0,
     "brownfield-complexity-gate": "c0c9f93219267309c45988e144203eaf9c7a47141633b0ddadec526964a63696",
 }
+SKILLS_0_2_0 = SKILLS
+SKILLS = {
+    **SKILLS_0_2_0,
+    "brownfield-map": "0fe4dd43ae266139be87e833490c29e6639849c1fb55a7dd6f14c256b13e8378",
+    "cross-change-roadmap": "b2f11bcc1d7ed052c80aa5dec5c7e1b0b862b396d79f6df8b085186fffb2339d",
+}
 KNOWN_SKILL_HASHES = {
     "0.1.0": SKILLS_0_1_0,
-    "0.2.0": SKILLS,
+    "0.2.0": SKILLS_0_2_0,
+    "0.3.0": SKILLS,
 }
 KNOWN_TEMPLATE_HASHES = {
     "0.1.0": "96f5090364bd6e0293e826ab0907f8ca6709a696550d28d2ed76958a7cad4afc",
     "0.2.0": "96f5090364bd6e0293e826ab0907f8ca6709a696550d28d2ed76958a7cad4afc",
+    "0.3.0": "96f5090364bd6e0293e826ab0907f8ca6709a696550d28d2ed76958a7cad4afc",
 }
 PROJECT_OWNED_NOTICE_PATHS = (
     "PRD.canonical.md",
@@ -870,7 +879,7 @@ def validate_receipt(data: Any, contract: dict[str, Any]) -> dict[str, Any]:
     if context["inserted"] and context["pre_existing"]:
         parts = split_0_2_complexity_context(snapshot.get("context", ""))
         if (
-            receipt_version != "0.2.0"
+            receipt_version not in ("0.2.0", "0.3.0")
             or parts is None
             or context.get("pre_existing_value") != parts[0]
             or context.get("value") != parts[1]

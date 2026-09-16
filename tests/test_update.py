@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import subprocess
 from unittest import mock
 
 from support import (
@@ -52,10 +53,12 @@ class UpdateTests(TempProjectTest):
         (self.root / "openspec/config.yaml").write_text(installed)
         skills = []
         for name, expected in MODULE.KNOWN_SKILL_HASHES[HISTORICAL_VERSION].items():
-            source = REPO / "skills" / name / "SKILL.md"
             target = self.root / ".agents/skills" / name / "SKILL.md"
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_bytes(source.read_bytes())
+            source = subprocess.check_output(
+                ["git", "show", f"HEAD:skills/{name}/SKILL.md"], cwd=REPO
+            )
+            target.write_bytes(source)
             self.assertEqual(MODULE.sha256_path(target), expected)
             skills.append(
                 {
